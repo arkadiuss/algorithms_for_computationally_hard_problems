@@ -1,0 +1,4 @@
+*.zip
+*.swp
+venv/
+__pycache__/
