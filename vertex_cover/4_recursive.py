@@ -55,26 +55,28 @@ def poly(G, k):
     return R
 
 def vertex_cover(G, k, S):
-    #R = kernelize(G,k)
-    #if R == None:
-    #    return None
-    #G, RS = R
-    #k -= len(RS) 
+    #print(G)
+    R = kernelize(G,k)
+    #print(R)
+    if R == None:
+        return None
+    Gc, RS = R
+    ck = k - len(RS) 
     if k<0:
         return None
-    u = all_in(G, S)
+    u = all_in(Gc, S)
     if u == None:
-        P = poly(G,k)
+        P = poly(Gc,ck)
         if P == None:
             return None
-        return S|P
-    if k < 1:
+        return S|P|RS
+    if ck < 1:
         return None
-    Nu = neigh(G, u)
-    S2 = vertex_cover(filtered(G, Nu), k-len(Nu), S|Nu)
+    Nu = neigh(Gc, u)
+    S2 = vertex_cover(filtered(Gc, Nu), ck-len(Nu), S|Nu|RS)
     if S2 != None:
         return S2
-    S1 = vertex_cover(filtered(G, {u}), k-1, S|{u})
+    S1 = vertex_cover(filtered(Gc, {u}), ck-1, S|{u}|RS)
     if S1 != None:
         return S1
 
@@ -105,7 +107,7 @@ def kernelize(G,k):
     return Gc, R
 
 def solve_vertex_cover(G):
-    for k in range(60,len(G)):
+    for k in range(1,len(G)):
         GcR = kernelize(G,k)
         if GcR == None:
             continue
