@@ -55,12 +55,11 @@ def poly(G, k):
     return R
 
 def vertex_cover(G, k, S):
-    #print(G)
     R = kernelize(G,k)
-    #print(R)
     if R == None:
         return None
     Gc, RS = R
+    Gc = filtered(Gc, RS)
     ck = k - len(RS) 
     if k<0:
         return None
@@ -89,20 +88,22 @@ def kernelize(G,k):
         Rs = set()
         for i in range(1, len(Gc)):
             if k < 1:
-                break;
+                break
             if len(Gc[i]) == 1:
                 Rs.add(list(Gc[i])[0])
                 changed=True
                 k = k-1
+                break
             if len(Gc[i]) > k:
                 Rs.add(i)
                 changed=True
                 k = k-1
+                break
         Gc = filtered(Gc, Rs)
         R |= Rs
         if not changed:
             break
-    if len(edgeList(Gc)) >= k*k:
+    if len(edgeList(Gc)) > k*k:
         return None
     return Gc, R
 
