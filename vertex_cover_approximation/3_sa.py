@@ -39,7 +39,7 @@ def sa(G):
             Sp = undo_swap(Sp, v)
         if st%100==0:
             p*=0.99
-        if st==10000:
+        if st%10000==0:
             print(st)
         st += 1
         S = Sp
