@@ -29,7 +29,7 @@ def undo_swap(S, v):
 def sa(G):
     Es = edgeList(G)
     S = set(range(1,len(G)))
-    steps = 100000
+    steps = 10000
     st = 0
     p = 0.15
     while st < steps:
@@ -39,7 +39,7 @@ def sa(G):
             Sp = undo_swap(Sp, v)
         if st%100==0:
             p*=0.99
-        if st%10000==0:
+        if st%1000==0:
             print(st)
         st += 1
         S = Sp
