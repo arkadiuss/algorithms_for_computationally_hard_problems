@@ -1,6 +1,7 @@
 import sys
 from dimacs import *
 from itertools import combinations
+import random
 
 def remove_edge(G, S):
     Gc = G.copy()
@@ -8,22 +9,16 @@ def remove_edge(G, S):
         Gc[i] = G[i].copy() - S
     return Gc
 
-def vertex_cover(G, k, S):
+def vertex_cover(G):
+    S=set()
     Es = edgeList(G)
-    if k==0 and len(Es)>0:
-        return None
     for (u,v) in Es:
         if u not in S and v not in S:
-            Gc = remove_edge(G, {u,v})
-            return vertex_cover(Gc, k-2, S|{u,v})
+            S = S|{u,v}
     return S
 
 def solve_vertex_cover(G):
-    for k in range(len(G)):
-        S = vertex_cover(G, k, set())
-        if S != None:
-            return S
-    return []
+    return vertex_cover(G)
 
 if len(sys.argv) < 2:
     print("Specify graph")

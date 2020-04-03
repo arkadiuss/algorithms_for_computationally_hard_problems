@@ -22,10 +22,8 @@ def find_two(G):
             return i
     return None
 
-def poly(G, k):
+def poly(G):
     c = len([1 for i in G if len(i)>1])
-    if c/2 >= k:
-        return None
     R = set()
     Gc = G.copy()
     while True:
@@ -34,34 +32,28 @@ def poly(G, k):
             o = find_two(Gc)
         if o == None:
             break
-        if k <= 0:
-            return None
         Gc = remove_edge(Gc, {o})
         R.add(o)
-        k = k -1
     return R
 
-def vertex_cover(G, k, S):
-    c = -1
-    for i in range(len(G)):
-        if len(G[i]) > 2 and (c == -1 or len(G[i]) > len(G[c])):
-            c = i
-    if c != -1 and k<=0:
-        return None
-    elif c==-1:
-        Sp = poly(G, k)
-        if Sp == None:
-            return None
-        return S|Sp
-    Gc = remove_edge(G, {c})
-    return vertex_cover(Gc, k-1, S|{c})
+def vertex_cover(G):
+    S = set()
+    while True:
+        c = -1
+        for i in range(len(G)):
+            if len(G[i]) > 2 and (c == -1 or len(G[i]) > len(G[c])):
+                c = i
+        if c==-1:
+            Sp = poly(G)
+            return S|Sp
+        G = remove_edge(G, {c})
+        S=S|{c}
+        if len(S)%100==0:
+            print(S)
 
 def solve_vertex_cover(G):
-    for k in range(len(G)):
-        S = vertex_cover(G, k, set())
-        if S != None:
-            return S
-    return []
+    S = vertex_cover(G)
+    return S
 
 if len(sys.argv) < 2:
     print("Specify graph")
