@@ -15,18 +15,45 @@ def to_sat(graph, k):
             clauses.append([(-u,i), (-v, i)])
     return clauses
 
-def redimension(clauses):
-    return clauses
+def sgn(a):
+    if a == 0:
+        return 0
+    elif a > 0:
+        return 1
+    return -1
+
+def flatten(clauses,k):
+    return [ [ sgn(u)*(abs(u)*k+v) for u,v in i] for i in clauses]
+
+def solution_colors(clauses, k):
+    return [ x%k for x in clauses if x > 0]
 
 def coloring(graph, k):
     clauses = to_sat(graph, k)
-    rclauses = redimension(clauses)
+    rclauses = flatten(clauses, k)
     solution = pycosat.solve(rclauses)
-    return solution != u'UNSAT'
+    if solution == u'UNSAT':
+        return solution
+    return solution_colors(solution, k)
+
+def verify(graph, coloring):
+    for u,v in edgeList(graph):
+        if coloring[u-1] == coloring[v-1]:
+            return False
+    return True
+
+def coloring_save(graph, k):
+    clauses = to_sat(graph, k)
+    rclauses = flatten(clauses, k)
+    saveCNF('causes.test', rclauses)
 
 if len(sys.argv) < 3:
     print("Usage: python 2_graph_colouring.py graph_path k")
 
 k = int(sys.argv[2])
 graph = loadGraph(sys.argv[1])
-print(coloring())
+coloring_save(graph, k)
+#c = coloring(graph, k)
+#print(c)
+#if c != u'UNSAT':
+#    print(verify(graph, c))

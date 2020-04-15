@@ -2,3 +2,8 @@ venv/
 *.tar.gz
 __pycache__/
 *.tgz
+._glucose-syrup-4.1
+MapleCOMSPS_LRB/
+causes.test
+glucose-syrup-4.1/
+
