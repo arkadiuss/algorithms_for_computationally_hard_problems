@@ -42,18 +42,14 @@ def verify(graph, coloring):
             return False
     return True
 
-def coloring_save(graph, k):
-    clauses = to_sat(graph, k)
-    rclauses = flatten(clauses, k)
-    saveCNF('causes.test', rclauses)
-
 if len(sys.argv) < 3:
     print("Usage: python 2_graph_colouring.py graph_path k")
 
 k = int(sys.argv[2])
 graph = loadGraph(sys.argv[1])
-coloring_save(graph, k)
-#c = coloring(graph, k)
-#print(c)
-#if c != u'UNSAT':
-#    print(verify(graph, c))
+c = coloring(graph, k)
+if c != u'UNSAT':
+    print(c)
+    print(verify(graph, c))
+else:
+    print(c)
