@@ -59,10 +59,12 @@ template<class V, class E> struct Graph {
 
 	struct Ve: V, set<Ed> {
 		vector<int> d;
+		bool removed = false;
 	};
 	
 	vector<Ve> g;
-	Graph(int n) : g(n) {};
+	int n;
+	Graph(int _n) : g(_n), n(_n) {};
 	
 	void setXY(int i, int x, int y) {
 		g[i].x = x;
@@ -87,15 +89,25 @@ template<class V, class E> struct Graph {
 			for(auto it : g[v]){
 				if(d[it.v] == -1) {
 					d[it.v] = d[v] + 1;
-					Q.push(g[it.v]);
+					Q.push(it.v);
 				}
 			}
 		}
 		g[s].d = d;
 	}
+	
+	void removeV(int v) {
+		for(auto it : g[v]) {
+			g[it.v].erase(v);
+		}
+		g[v].clear();
+		g[v].removed = true;
+	}
 };
 
-Graph<V,E> input(int W, int H, int L, int K) {
+typedef Graph<V, E>  GraphVE;
+
+GraphVE input(int W, int H, int L, int K) {
 	string name;
 	cin>>name;
 	vector<vector<char>> A(H, vector<char>(W));
@@ -112,11 +124,11 @@ Graph<V,E> input(int W, int H, int L, int K) {
 			}
 		}	
 	}
-	Graph<V, E> G(n);
+	GraphVE G(n);
 	loop(i,0,H) {
 		loop(j,0,W) {
-			if(a != '.') {
-				G.setXY(I[i][j], i, j);
+			if(A[i][j] != '.') {
+				G.setXY(I[i][j], j, i);
 			}
 			if((A[i][j] == '|' || A[i][j] == '+') && i > 0 && (A[i-1][j] == '|' || A[i-1][j] == '+')) {
 				G.edge(I[i][j], I[i-1][j]);
@@ -129,7 +141,7 @@ Graph<V,E> input(int W, int H, int L, int K) {
 	return G;
 }
 
-void print(const Graph<V, E> & G) {
+void print(const GraphVE & G) {
 	loop(i,0,(int) G.g.size()) {
 		ps(i);ps(": ");
 		for(auto it : G.g[i]) {
@@ -139,10 +151,58 @@ void print(const Graph<V, E> & G) {
 	}
 }
 
+void addMissingEdges(GraphVE & G, int L) {
+	loop(i,0,G.n) {
+		loop(j,0,G.n) {
+			if(G.g[i].d[j] > 1 && G.g[i].d[j] <= L){
+				G.edge(i,j);
+			} 
+		}
+	}
+}
+
+int lowestDegree(const GraphVE & G) {
+	int minv = -1;
+	loop(i,0,G.n) {
+		if(!G.g[i].removed && (minv == -1 || G.g[minv].size()>G.g[i].size())) 
+			minv = i;
+	}
+	return minv;
+}
+
+
+vector<PII> algo1(GraphVE G, int L, int K) {
+	loop(i,0,G.n) {
+		G.bfs(i);
+	}
+	addMissingEdges(G, L);
+	vector<PII> res;
+	while(K > 0) {
+		int v = lowestDegree(G);
+		if(v == -1) {
+			return vector<PII>();
+		}
+		res.pb({ G.g[v].x, G.g[v].y });
+		VI toRemove;
+		for(auto neigh : G.g[v]) {
+			toRemove.pb(neigh.v);
+		}
+		toRemove.pb(v);
+		for(auto vr : toRemove) {
+			G.removeV(vr);
+		}
+		K--;
+	}
+	return res;
+}
+
 int main() {
 	ios_base::sync_with_stdio(0);
 	int W,H,L,K;
 	cin>>W>>H>>L>>K;
 	auto G = input(W,H,L,K);
-	print(G);
+	auto res = algo1(G, L, K);
+	for(auto p : res) {
+		ps(p.ff);pln(p.ss);
+	}
 }	
