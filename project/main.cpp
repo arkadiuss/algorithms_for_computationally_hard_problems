@@ -103,6 +103,18 @@ template<class V, class E> struct Graph {
 		g[v].clear();
 		g[v].removed = true;
 	}
+	
+	void softRemoveV(int v) {
+		g[v].removed = true;
+	}
+	
+	void restoreV(int v) {
+		/*for(auto it : g[v]) {
+			g[it.v].erase(v);
+		}
+		g[v].clear(); */
+		g[v].removed = false;
+	}
 };
 
 typedef Graph<V, E>  GraphVE;
@@ -170,7 +182,6 @@ int lowestDegree(const GraphVE & G) {
 	return minv;
 }
 
-
 vector<PII> algo1(GraphVE G, int L, int K) {
 	loop(i,0,G.n) {
 		G.bfs(i);
@@ -196,13 +207,111 @@ vector<PII> algo1(GraphVE G, int L, int K) {
 	return res;
 }
 
+int countEdgesWithNeigh(const GraphVE & G, int v) {
+	int e = 0;
+	for(auto it : G.g[v]) {
+		if(v < it.v) e++;
+		for(auto itn : G.g[it.v]) {
+			if(it.v < itn.v) e++;
+		}
+	}
+	//ps(v);pln(e);
+	return e;
+}
+
+int superLowestDegree(const GraphVE & G) {
+	int minv = -1;
+	loop(i,0,G.n) {
+		if(!G.g[i].removed && (minv == -1 || G.g[minv].size()>G.g[i].size())) {
+			minv = i;
+		} else if(!G.g[i].removed && minv != -1 && G.g[minv].size()==G.g[i].size() && countEdgesWithNeigh(G, i) > countEdgesWithNeigh(G, minv)) {
+			minv = i;
+		}
+	}
+	return minv;
+}
+
+vector<PII> algo2(GraphVE G, int L, int K) {
+	loop(i,0,G.n) {
+		G.bfs(i);
+	}
+	addMissingEdges(G, L);
+	vector<PII> res;
+	while(K > 0) {
+		int v = superLowestDegree(G);
+		if(v == -1) {
+			return vector<PII>();
+		}
+		res.pb({ G.g[v].x, G.g[v].y });
+		VI toRemove;
+		for(auto neigh : G.g[v]) {
+			toRemove.pb(neigh.v);
+		}
+		toRemove.pb(v);
+		for(auto vr : toRemove) {
+			G.removeV(vr);
+		}
+		K--;
+	}
+	return res;
+}
+
+VI removeVAndNeighs(GraphVE & G, int v) {
+	VI toRemove;
+	for(auto neigh : G.g[v]) {
+		if(!G.g[neigh.v].removed)
+			toRemove.pb(neigh.v);
+	}
+	toRemove.pb(v);
+	for(auto vr : toRemove) {
+		G.softRemoveV(vr);
+	}
+	return toRemove;
+}
+
+vector<PII> backtrack(GraphVE & G, int K) {
+	if(K == 1) {
+		for(int i = 0; i<G.n; i++) {
+			if(!G.g[i].removed){ return vector<PII>(1, {G.g[i].x, G.g[i].y});}
+		}	
+		return vector<PII>();
+	}
+	for(int i = 0; i<G.n; i++) {
+		if(!G.g[i].removed) {
+			auto removed = removeVAndNeighs(G, i);
+			auto res = backtrack(G, K-1);
+			if(res.size() != 0) {
+				res.pb({G.g[i].x, G.g[i].y});
+				return res;
+			}
+			for(auto r: removed)
+				G.restoreV(r);
+		}
+	}
+	return vector<PII>();
+}
+
+vector<PII> algo3(GraphVE G, int L, int K) {
+	loop(i,0,G.n) {
+		G.bfs(i);
+	}
+	addMissingEdges(G, L);
+	return backtrack(G, K);
+}
+
 int main() {
 	ios_base::sync_with_stdio(0);
 	int W,H,L,K;
 	cin>>W>>H>>L>>K;
 	auto G = input(W,H,L,K);
-	auto res = algo1(G, L, K);
-	for(auto p : res) {
-		ps(p.ff);pln(p.ss);
+	auto algos = { algo1, algo2, algo3 };
+	for(auto algo : algos) {
+		auto res = algo(G, L, K);
+		if(res.size() > 0){
+			for(auto p : res) {
+				ps(p.ff);pln(p.ss);
+			}
+			break;
+		}
 	}
 }	
